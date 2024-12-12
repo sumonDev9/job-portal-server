@@ -3,18 +3,15 @@ const cors = require('cors');
 const app = express();
 require('dotenv').config()
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // middilware
 app.use(cors());
 app.use(express.json());
 
-// job_hunter emkfiwpH2PJ128dE
-
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.qqfyy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-console.log(uri)
+
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -31,6 +28,35 @@ async function run() {
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+    // jobs related api
+    const jobsCollection = client.db('jobportal').collection('jobs');
+    const jobApplicationCollection = client.db('jobportal').collection('job_Applications');
+    
+    app.get('/jobs', async(req, res) => {
+        const cursor = jobsCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+    })
+
+    app.get('/jobs/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await jobsCollection.findOne(query);
+      res.send(result);
+    })
+
+    app.post('/job_Applications/:id', async (req, res) => {
+      const application = req.body;
+      const result = await jobApplicationCollection.insertOne(application);
+      res.send(result);
+    })
+
+
+
+
+
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
