@@ -31,7 +31,7 @@ async function run() {
 
     // jobs related api
     const jobsCollection = client.db('jobportal').collection('jobs');
-    const jobApplicationCollection = client.db('jobportal').collection('job_Applications');
+    const jobApplicationCollection = client.db('jobportal').collection('job-Applications');
     
     app.get('/jobs', async(req, res) => {
         const cursor = jobsCollection.find();
@@ -46,7 +46,30 @@ async function run() {
       res.send(result);
     })
 
-    app.post('/job_Applications/:id', async (req, res) => {
+    //job application api
+    // get all data
+
+    app.get('/job-Applications', async (req, res) => {
+      const email = req.query.email;
+      const query = {applicant_email: email}
+      const result = await jobApplicationCollection.find(query).toArray();
+
+      // fokira vabe 
+      for(const application of result) {
+        const query1 = {_id: new ObjectId(application.job_id)}
+        const job = await jobsCollection.findOne(query1);
+        if(job){
+          application.title = job.title;
+          application.location = job.location;
+          application.company = job.company;
+          application.company_logo = job.company_logo;
+
+        }
+      }
+      res.send(result);
+    })
+
+    app.post('/job-Applications', async (req, res) => {
       const application = req.body;
       const result = await jobApplicationCollection.insertOne(application);
       res.send(result);
