@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+jwt = require('jsonwebtoken');
 const app = express();
 require('dotenv').config()
 const port = process.env.PORT || 5000;
@@ -33,6 +34,21 @@ async function run() {
     const jobsCollection = client.db('jobportal').collection('jobs');
     const jobApplicationCollection = client.db('jobportal').collection('job-Applications');
     
+
+    // Auth related APIS
+    app.post('/jwt', async(req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, 'secret', {expiresIn: '1h'});
+      res.send(token)
+    })
+
+
+
+
+
+
+
+    // job related api
     app.get('/jobs', async(req, res) => {
         const email = req.query.email;
         let query = {};
@@ -72,7 +88,7 @@ async function run() {
       const email = req.query.email;
       const query = {applicant_email: email}
       const result = await jobApplicationCollection.find(query).toArray();
-
+      
       // fokira vabe 
       for(const application of result) {
         const query1 = {_id: new ObjectId(application.job_id)}
@@ -89,10 +105,10 @@ async function run() {
     })
 
 
-     app.get('/job-application/jobs/:job_id', async(req, res) => {
+     app.get('/job-applications/jobs/:job_id', async(req, res) => {
       const jobId = req.params.job_id;
       const query = {job_id: jobId}
-      const result = await jobApplicationCollection.find(query).toArray();
+      const result = await jobApplicationCollection.find(query).toArray()
       res.send(result);
     })
 
